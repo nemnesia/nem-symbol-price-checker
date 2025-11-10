@@ -1,0 +1,27 @@
+[Unit]
+Description=NEM/Symbol Price Checker - Daily Collection
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=__USER__
+WorkingDirectory=__PROJECT_DIR__
+Environment=NODE_ENV=production
+ExecStart=__NODE_PATH__ __PROJECT_DIR__/dist/daily-collector.js
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nem-symbol-daily
+
+# セキュリティ設定
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=__PROJECT_DIR__/data
+ReadWritePaths=__PROJECT_DIR__/logs
+
+[Install]
+WantedBy=multi-user.target

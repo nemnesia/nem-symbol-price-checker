@@ -1,0 +1,31 @@
+[Unit]
+Description=NEM/Symbol Price Checker API Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__PROJECT_DIR__
+Environment=NODE_ENV=production
+Environment=PORT=3000
+ExecStart=__NODE_PATH__ __PROJECT_DIR__/dist/index.js
+Restart=always
+RestartSec=5
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nem-symbol-api
+
+# セキュリティ設定
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadOnlyPaths=__PROJECT_DIR__
+ReadWritePaths=__PROJECT_DIR__/data
+ReadWritePaths=__PROJECT_DIR__/cache
+
+[Install]
+WantedBy=multi-user.target

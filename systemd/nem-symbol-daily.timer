@@ -1,0 +1,11 @@
+[Unit]
+Description=NEM/Symbol Price Checker - Daily Collection Timer
+Requires=nem-symbol-daily.service
+
+[Timer]
+# 日本時間の0:00に実行 (UTC 15:00)
+OnCalendar=*-*-* 15:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

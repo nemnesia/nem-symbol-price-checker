@@ -1,0 +1,11 @@
+[Unit]
+Description=NEM/Symbol Price Checker - Recovery Collection Timer
+Requires=nem-symbol-recovery.service
+
+[Timer]
+# 毎時実行
+OnCalendar=*-*-* *:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

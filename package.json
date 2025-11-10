@@ -1,0 +1,47 @@
+{
+  "name": "nem-symbol-price-checker",
+  "author": "ccHarvestasya",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "yarn@4.11.0",
+  "volta": {
+    "node": "22.21.0",
+    "npm": "11.6.2",
+    "yarn": "4.10.3"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.5.0",
+    "express": "^4.18.0"
+  },
+  "scripts": {
+    "build": "shx rm -rf dist && tsc --build tsconfig.build.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "daily": "tsx src/daily-collector.ts",
+    "recovery": "tsx src/recovery.ts",
+    "current": "tsx src/current-price.ts",
+    "test": "tsx src/test-system.ts",
+    "setup": "./setup.sh",
+    "uninstall": "./uninstall.sh"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/express": "^4.17.0",
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "@vitest/coverage-v8": "^4.0.8",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "shx": "^0.4.0",
+    "tslib": "^2.8.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
+  }
+}
