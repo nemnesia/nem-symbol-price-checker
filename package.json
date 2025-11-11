@@ -1,8 +1,33 @@
 {
   "name": "nem-symbol-price-checker",
+  "version": "1.0.0",
+  "description": "NEM/Symbol cryptocurrency price checker and data collector",
   "author": "ccHarvestasya",
   "type": "module",
   "license": "MIT",
+  "private": true,
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "nem",
+    "symbol",
+    "cryptocurrency",
+    "price",
+    "tracker",
+    "blockchain"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nemnesia/nem-symbol-price-checker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nemnesia/nem-symbol-price-checker/issues"
+  },
+  "homepage": "https://github.com/nemnesia/nem-symbol-price-checker#readme",
   "engines": {
     "node": ">=18.0.0"
   },
