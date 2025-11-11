@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -10,8 +11,42 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// レート制限設定 - API全体に対して
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15分間
+  max: 100, // 最大100リクエスト
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// キャッシュAPIに対するより厳しいレート制限
+const cacheLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1分間
+  max: 10, // 最大10リクエスト
+  message: {
+    error: 'Too many cache requests, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// データベースAPIに対するレート制限
+const dbLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5分間
+  max: 30, // 最大30リクエスト
+  message: {
+    error: 'Too many database requests, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // JSONレスポンス用のヘッダー設定
 app.use(express.json());
+app.use(limiter); // 全エンドポイントに基本的なレート制限を適用
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.header('Content-Type', 'application/json; charset=utf-8');
   res.header('Access-Control-Allow-Origin', '*');
@@ -26,7 +61,7 @@ const db = new PriceDatabase();
  * 日次価格データ取得API
  * GET /api/daily/:symbol?from=YYYY-MM-DD&to=YYYY-MM-DD
  */
-app.get('/api/daily/:symbol', (req: Request, res: Response) => {
+app.get('/api/daily/:symbol', dbLimiter, (req: Request, res: Response) => {
   try {
     const { symbol } = req.params;
     const { from, to } = req.query;
@@ -76,7 +111,7 @@ app.get('/api/daily/:symbol', (req: Request, res: Response) => {
  * 現在価格データ取得API（データベースから最新価格）
  * GET /api/current/:symbol
  */
-app.get('/api/current/:symbol', (req: Request, res: Response) => {
+app.get('/api/current/:symbol', dbLimiter, (req: Request, res: Response) => {
   try {
     const { symbol } = req.params;
 
@@ -111,7 +146,7 @@ app.get('/api/current/:symbol', (req: Request, res: Response) => {
  * 現在価格データ取得API（JSONキャッシュファイルから）
  * GET /api/current-cache
  */
-app.get('/api/current-cache', (req: Request, res: Response) => {
+app.get('/api/current-cache', cacheLimiter, (req: Request, res: Response) => {
   try {
     const cacheFile = path.join(__dirname, '..', 'cache', 'current-prices.json');
 
@@ -135,7 +170,7 @@ app.get('/api/current-cache', (req: Request, res: Response) => {
  * 両コインの現在価格を一括取得
  * GET /api/current
  */
-app.get('/api/current', (req: Request, res: Response) => {
+app.get('/api/current', dbLimiter, (req: Request, res: Response) => {
   try {
     const xemPrice = db.getLatestCurrentPrice('XEM');
     const xymPrice = db.getLatestCurrentPrice('XYM');
