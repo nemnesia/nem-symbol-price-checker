@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,13 +27,13 @@ export class PriceDatabase {
   constructor(dbPath?: string) {
     const defaultPath = path.join(__dirname, '..', 'data', 'prices.db');
     const finalPath = dbPath || defaultPath;
-    
+
     // データベースディレクトリを作成
     const dbDir = path.dirname(finalPath);
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
     }
-    
+
     this.db = new Database(finalPath);
     this.initializeTables();
   }

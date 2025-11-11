@@ -1,8 +1,8 @@
-import express, { Request, Response, NextFunction } from 'express';
-import { PriceDatabase } from './database.js';
+import express, { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { PriceDatabase } from './database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,45 +30,44 @@ app.get('/api/daily/:symbol', (req: Request, res: Response) => {
   try {
     const { symbol } = req.params;
     const { from, to } = req.query;
-    
+
     if (!symbol || !['XEM', 'XYM'].includes(symbol.toUpperCase())) {
       return res.status(400).json({
-        error: 'Invalid symbol. Use XEM or XYM.'
+        error: 'Invalid symbol. Use XEM or XYM.',
       });
     }
-    
+
     if (!from || !to) {
       return res.status(400).json({
-        error: 'Both from and to date parameters are required. Format: YYYY-MM-DD'
+        error: 'Both from and to date parameters are required. Format: YYYY-MM-DD',
       });
     }
-    
+
     // 日付フォーマットの簡単な検証
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(from as string) || !dateRegex.test(to as string)) {
       return res.status(400).json({
-        error: 'Invalid date format. Use YYYY-MM-DD'
+        error: 'Invalid date format. Use YYYY-MM-DD',
       });
     }
-    
+
     const prices = db.getDailyPrices(symbol.toUpperCase(), from as string, to as string);
-    
+
     res.json({
       symbol: symbol.toUpperCase(),
       from,
       to,
       count: prices.length,
-      data: prices.map(price => ({
+      data: prices.map((price) => ({
         date: price.date,
         price_jpy: price.price_jpy,
-        created_at: price.created_at
-      }))
+        created_at: price.created_at,
+      })),
     });
-    
   } catch (error) {
     console.error('Error in /api/daily:', error);
     res.status(500).json({
-      error: 'Internal server error'
+      error: 'Internal server error',
     });
   }
 });
@@ -80,31 +79,30 @@ app.get('/api/daily/:symbol', (req: Request, res: Response) => {
 app.get('/api/current/:symbol', (req: Request, res: Response) => {
   try {
     const { symbol } = req.params;
-    
+
     if (!symbol || !['XEM', 'XYM'].includes(symbol.toUpperCase())) {
       return res.status(400).json({
-        error: 'Invalid symbol. Use XEM or XYM.'
+        error: 'Invalid symbol. Use XEM or XYM.',
       });
     }
-    
+
     const currentPrice = db.getLatestCurrentPrice(symbol.toUpperCase());
-    
+
     if (!currentPrice) {
       return res.status(404).json({
-        error: 'No current price data found'
+        error: 'No current price data found',
       });
     }
-    
+
     res.json({
       symbol: symbol.toUpperCase(),
       price_jpy: currentPrice.price_jpy,
-      timestamp: currentPrice.timestamp
+      timestamp: currentPrice.timestamp,
     });
-    
   } catch (error) {
     console.error('Error in /api/current:', error);
     res.status(500).json({
-      error: 'Internal server error'
+      error: 'Internal server error',
     });
   }
 });
@@ -116,20 +114,19 @@ app.get('/api/current/:symbol', (req: Request, res: Response) => {
 app.get('/api/current-cache', (req: Request, res: Response) => {
   try {
     const cacheFile = path.join(__dirname, '..', 'cache', 'current-prices.json');
-    
+
     if (!fs.existsSync(cacheFile)) {
       return res.status(404).json({
-        error: 'Cache file not found'
+        error: 'Cache file not found',
       });
     }
-    
+
     const cacheData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
     res.json(cacheData);
-    
   } catch (error) {
     console.error('Error in /api/current-cache:', error);
     res.status(500).json({
-      error: 'Internal server error'
+      error: 'Internal server error',
     });
   }
 });
@@ -142,22 +139,25 @@ app.get('/api/current', (req: Request, res: Response) => {
   try {
     const xemPrice = db.getLatestCurrentPrice('XEM');
     const xymPrice = db.getLatestCurrentPrice('XYM');
-    
+
     res.json({
-      XEM: xemPrice ? {
-        price_jpy: xemPrice.price_jpy,
-        timestamp: xemPrice.timestamp
-      } : null,
-      XYM: xymPrice ? {
-        price_jpy: xymPrice.price_jpy,
-        timestamp: xymPrice.timestamp
-      } : null
+      XEM: xemPrice
+        ? {
+            price_jpy: xemPrice.price_jpy,
+            timestamp: xemPrice.timestamp,
+          }
+        : null,
+      XYM: xymPrice
+        ? {
+            price_jpy: xymPrice.price_jpy,
+            timestamp: xymPrice.timestamp,
+          }
+        : null,
     });
-    
   } catch (error) {
     console.error('Error in /api/current:', error);
     res.status(500).json({
-      error: 'Internal server error'
+      error: 'Internal server error',
     });
   }
 });
@@ -169,7 +169,7 @@ app.get('/api/current', (req: Request, res: Response) => {
 app.get('/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -187,41 +187,41 @@ app.get('/', (req: Request, res: Response) => {
         parameters: {
           symbol: 'XEM or XYM',
           from: 'Start date (YYYY-MM-DD)',
-          to: 'End date (YYYY-MM-DD)'
+          to: 'End date (YYYY-MM-DD)',
         },
-        example: '/api/daily/XEM?from=2024-01-01&to=2024-01-31'
+        example: '/api/daily/XEM?from=2024-01-01&to=2024-01-31',
       },
       'GET /api/current/:symbol': {
         description: 'Get latest current price for XEM or XYM from database',
         parameters: {
-          symbol: 'XEM or XYM'
+          symbol: 'XEM or XYM',
         },
-        example: '/api/current/XEM'
+        example: '/api/current/XEM',
       },
       'GET /api/current': {
-        description: 'Get latest current prices for both XEM and XYM from database'
+        description: 'Get latest current prices for both XEM and XYM from database',
       },
       'GET /api/current-cache': {
-        description: 'Get current prices from JSON cache file'
+        description: 'Get current prices from JSON cache file',
       },
       'GET /health': {
-        description: 'Health check endpoint'
-      }
-    }
+        description: 'Health check endpoint',
+      },
+    },
   });
 });
 
 // エラーハンドリング
 app.use((req: Request, res: Response) => {
   res.status(404).json({
-    error: 'Endpoint not found'
+    error: 'Endpoint not found',
   });
 });
 
 app.use((error: any, req: Request, res: Response, _next: NextFunction) => {
   console.error('Unhandled error:', error);
   res.status(500).json({
-    error: 'Internal server error'
+    error: 'Internal server error',
   });
 });
 

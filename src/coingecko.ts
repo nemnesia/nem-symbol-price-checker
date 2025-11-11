@@ -12,11 +12,11 @@ export interface CoinGeckoHistoryPrice {
 
 export class CoinGeckoAPI {
   private baseUrl = 'https://api.coingecko.com/api/v3';
-  
+
   // XEM: nem, XYM: symbol
   private coinIds = {
     XEM: 'nem',
-    XYM: 'symbol'
+    XYM: 'symbol',
   } as const;
 
   /**
@@ -26,19 +26,19 @@ export class CoinGeckoAPI {
     for (let i = 0; i < maxRetries; i++) {
       try {
         const response = await fetch(url);
-        
+
         if (response.status === 429) {
           // Rate limit exceeded - wait and retry
           const delay = baseDelay * Math.pow(2, i); // Exponential backoff
           console.log(`Rate limit hit, waiting ${delay}ms before retry ${i + 1}/${maxRetries}`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         return response;
       } catch (error) {
         if (i === maxRetries - 1) {
@@ -46,7 +46,7 @@ export class CoinGeckoAPI {
         }
         const delay = baseDelay * Math.pow(2, i);
         console.log(`Request failed, retrying in ${delay}ms... (${i + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
     throw new Error('Max retries reached');
@@ -58,14 +58,14 @@ export class CoinGeckoAPI {
   async getCurrentPrices(): Promise<{ XEM: number; XYM: number }> {
     const coinIdsParam = Object.values(this.coinIds).join(',');
     const url = `${this.baseUrl}/simple/price?ids=${coinIdsParam}&vs_currencies=jpy`;
-    
+
     try {
       const response = await this.fetchWithRetry(url);
       const data: CoinGeckoPrice = await response.json();
-      
+
       return {
         XEM: data[this.coinIds.XEM]?.jpy || 0,
-        XYM: data[this.coinIds.XYM]?.jpy || 0
+        XYM: data[this.coinIds.XYM]?.jpy || 0,
       };
     } catch (error) {
       console.error('Failed to fetch current prices:', error);
@@ -82,7 +82,7 @@ export class CoinGeckoAPI {
     const coinId = this.coinIds[coinSymbol];
     const formattedDate = this.formatDateForAPI(date);
     const url = `${this.baseUrl}/coins/${coinId}/history?date=${formattedDate}`;
-    
+
     try {
       const response = await this.fetchWithRetry(url);
       const data = await response.json();
@@ -99,20 +99,24 @@ export class CoinGeckoAPI {
    * @param fromDate YYYY-MM-DD format
    * @param toDate YYYY-MM-DD format
    */
-  async getPriceHistory(coinSymbol: 'XEM' | 'XYM', fromDate: string, toDate: string): Promise<Array<{date: string, price: number}>> {
+  async getPriceHistory(
+    coinSymbol: 'XEM' | 'XYM',
+    fromDate: string,
+    toDate: string
+  ): Promise<Array<{ date: string; price: number }>> {
     const coinId = this.coinIds[coinSymbol];
     const fromTimestamp = Math.floor(new Date(fromDate).getTime() / 1000);
     const toTimestamp = Math.floor(new Date(toDate).getTime() / 1000);
-    
+
     const url = `${this.baseUrl}/coins/${coinId}/market_chart/range?vs_currency=jpy&from=${fromTimestamp}&to=${toTimestamp}`;
-    
+
     try {
       const response = await this.fetchWithRetry(url);
       const data: CoinGeckoHistoryPrice = await response.json();
-      
+
       return data.prices.map(([timestamp, price]) => ({
         date: this.formatTimestampToDate(timestamp),
-        price: price
+        price: price,
       }));
     } catch (error) {
       console.error(`Failed to fetch price history for ${coinSymbol}:`, error);

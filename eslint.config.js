@@ -1,6 +1,6 @@
-import js from '@eslint/js'
-import tsPlugin from '@typescript-eslint/eslint-plugin'
-import tsParser from '@typescript-eslint/parser'
+import js from '@eslint/js';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
 
 export default [
@@ -23,4 +23,4 @@ export default [
       'no-unused-vars': 'off', // TypeScriptのルールを優先するため無効化
     },
   },
-]
+];
