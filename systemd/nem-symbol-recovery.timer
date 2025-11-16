@@ -4,7 +4,7 @@ Requires=nem-symbol-recovery.service
 
 [Timer]
 # 毎時実行
-OnCalendar=*-*-* *:00:00
+OnCalendar=*-*-* *:05:00
 Persistent=true
 
 [Install]
