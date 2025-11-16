@@ -152,16 +152,16 @@ export class CoinGeckoAPI {
    * 日本時間での今日の日付を取得
    */
   getJapanToday(): string {
-    const now = new Date();
-    const japanTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-    return japanTime.toISOString().split('T')[0];
+    // Intl.DateTimeFormat を使って直接YYYY-MM-DD形式で日本時間の日付を取得
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
   }
 
   /**
    * 日本時間での昨日の日付を取得
    */
   getJapanYesterday(): string {
-    const today = this.getJapanToday();
-    return this.getPreviousDate(today);
+    // 24時間前のタイムスタンプを日本時間で表示
+    const yesterdayTimestamp = Date.now() - 24 * 60 * 60 * 1000;
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date(yesterdayTimestamp));
   }
 }
