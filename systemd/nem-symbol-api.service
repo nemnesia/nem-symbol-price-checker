@@ -26,6 +26,7 @@ ProtectHome=read-only
 ReadOnlyPaths=__PROJECT_DIR__
 ReadWritePaths=__PROJECT_DIR__/data
 ReadWritePaths=__PROJECT_DIR__/cache
+ReadWritePaths=__PROJECT_DIR__/logs
 
 [Install]
 WantedBy=multi-user.target

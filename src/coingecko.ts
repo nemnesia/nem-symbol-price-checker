@@ -74,22 +74,54 @@ export class CoinGeckoAPI {
   }
 
   /**
-   * 指定日の平均価格を取得
+   * 指定日の平均価格を取得（Range APIで日本時間1日分のデータから計算）
    * @param coinSymbol XEM or XYM
-   * @param date YYYY-MM-DD format
+   * @param date YYYY-MM-DD format (日本時間ベース)
    */
   async getDailyPrice(coinSymbol: 'XEM' | 'XYM', date: string): Promise<number> {
     const coinId = this.coinIds[coinSymbol];
-    const formattedDate = this.formatDateForAPI(date);
-    const url = `${this.baseUrl}/coins/${coinId}/history?date=${formattedDate}`;
-
+    
     try {
+      // 日本時間での指定日の開始時刻と終了時刻を設定
+      // 日本時間 00:00:00 - 23:59:59 をUTCタイムスタンプに変換
+      const jstStartDate = new Date(date + 'T00:00:00+09:00'); // JST 00:00
+      const jstEndDate = new Date(date + 'T23:59:59+09:00');   // JST 23:59
+      
+      const fromTimestamp = Math.floor(jstStartDate.getTime() / 1000);
+      const toTimestamp = Math.floor(jstEndDate.getTime() / 1000);
+      
+      const url = `${this.baseUrl}/coins/${coinId}/market_chart/range?vs_currency=jpy&from=${fromTimestamp}&to=${toTimestamp}`;
+      
       const response = await this.fetchWithRetry(url);
-      const data = await response.json();
-      return data.market_data?.current_price?.jpy || 0;
+      const data: CoinGeckoHistoryPrice = await response.json();
+      
+      if (!data.prices || data.prices.length === 0) {
+        console.warn(`No price data available for ${coinSymbol} on ${date} (JST)`);
+        return 0;
+      }
+      
+      // 全価格データの平均を計算
+      const averagePrice = data.prices.reduce((sum, [, price]) => sum + price, 0) / data.prices.length;
+      
+      console.log(`${coinSymbol} ${date} (JST): ${data.prices.length} data points, average price: ¥${averagePrice.toFixed(6)}`);
+      
+      return averagePrice;
+      
     } catch (error) {
-      console.error(`Failed to fetch daily price for ${coinSymbol} on ${date}:`, error);
-      throw error;
+      console.error(`Failed to fetch daily average price for ${coinSymbol} on ${date} (JST):`, error);
+      
+      // フォールバックとして従来のHistory APIを使用
+      console.log(`Falling back to History API for ${coinSymbol} ${date}`);
+      try {
+        const formattedDate = this.formatDateForAPI(date);
+        const fallbackUrl = `${this.baseUrl}/coins/${coinId}/history?date=${formattedDate}`;
+        const fallbackResponse = await this.fetchWithRetry(fallbackUrl);
+        const fallbackData = await fallbackResponse.json();
+        return fallbackData.market_data?.current_price?.jpy || 0;
+      } catch (fallbackError) {
+        console.error(`Fallback History API also failed for ${coinSymbol} on ${date}:`, fallbackError);
+        throw error;
+      }
     }
   }
 
